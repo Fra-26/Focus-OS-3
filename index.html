@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus OS - Disciplina & Obiettivi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* DESIGN MODERNO - DARK MINIMAL TECH */
+        :root {
+            --bg-main: #0a0a0c;
+            --bg-card: #121216;
+            --bg-sidebar: #16161c;
+            --border-color: #262630;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent: #ffffff;
+            --accent-hover: #e5e7eb;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* FINESTRA LATERALE (SIDEBAR) */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .goal-list {
+            list-style: none;
+            overflow-y: auto;
+            flex-grow: 1;
+            margin-bottom: 20px;
+        }
+
+        .goal-item {
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .goal-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-color);
+        }
+
+        .goal-item.active {
+            background: #ffffff;
+            color: #000000;
+            font-weight: 600;
+        }
+
+        .goal-item .delete-goal-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .goal-item:hover .delete-goal-btn { display: block; }
+        .goal-item.active .delete-goal-btn { color: #666; }
+        .goal-item .delete-goal-btn:hover { color: var(--danger); }
+
+        /* AREA CONTENUTO PRINCIPALE */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            position: relative;
+        }
+
+        .quote-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 22px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .quote-text {
+            font-size: 1.1rem;
+            font-style: italic;
+            font-weight: 300;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        .quote-author {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        /* INPUT E BOTTONI */
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: var(--accent-hover); }
+
+        .sidebar button {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .sidebar button:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* GRIGLIA CHECKLIST */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            transition: outline 0.3s ease;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: outline 0.3s ease;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .todo-list { list-style: none; margin-top: 15px; }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .todo-left { display: flex; align-items: center; gap: 12px; }
+
+        .todo-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .completed { text-decoration: line-through; color: var(--text-muted); }
+        .btn-del { background: none; color: var(--text-muted); border: none; padding: 5px; cursor: pointer; }
+        .btn-del:hover { color: var(--danger); }
+
+        /* TABELLA DATI AVANZATA */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .progress-badge { background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+        .advice-box { background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--text-main); padding: 15px; border-radius: 0 8px 8px 0; font-size: 0.95rem; }
+
+        /* GRIGLIA GRAFICI */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-container h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            align-self: flex-start;
+        }
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .no-goals-message { text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 1.1rem; }
+
+        /* POPUP MODALE */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 999999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal h2 { font-size: 1.6rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal h3 { font-size: 1.1rem; margin-top: 20px; margin-bottom: 8px; color: #fff; border-left: 2px solid var(--text-muted); padding-left: 8px; }
+        .modal p, .modal li { font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-bottom: 8px; }
+        .modal ul { margin-left: 20px; margin-bottom: 15px; }
+
+        /* NOTIFICHE TOAST VISIVE */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease forwards;
+        }
+        .toast.success { background-color: var(--success); }
+        .toast.error { background-color: var(--danger); }
+        .toast.warning { background-color: var(--warning); color: #000; }
+
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* EFFETTO CERCHIO / EVIDENZIATORE TUTORIAL */
+        .tutorial-highlight {
+            outline: 4px solid #3b82f6 !important;
+            outline-offset: 4px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5) !important;
+            position: relative;
+            z-index: 995;
+        }
+
+        /* BOX TUTORIAL CENTRATO NELLA SIDEBAR */
+        .tutorial-tooltip {
+            position: absolute;
+            left: 15px;
+            right: 15px;
+            top: 45%;
+            transform: translateY(-50%);
+            background: #1e3a8a;
+            border: 1px solid #3b82f6;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+        .tutorial-tooltip button {
+            background: white;
+            color: #1e3a8a;
+            padding: 8px 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="sidebar" id="step-sidebar">
+        <div class="sidebar-title">I tuoi Obiettivi Finali</div>
+        <ul class="goal-list" id="sidebar-goal-list"></ul>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px; position: relative;">
+            <input type="text" id="new-goal-title" placeholder="Nuovo Obiettivo Finale...">
+            <button onclick="createNewGoal()">+ Crea Pagina</button>
+            <button onclick="startTutorial()" style="background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2);">🧭 Avvia Tutorial</button>
+            <button onclick="toggleModal(true)" style="background: transparent; color: var(--text-muted); font-size: 0.85rem; border: none; text-decoration: underline;">📖 Manuale & Info</button>
+        </div>
+        
+        <div id="tutorial-container"></div>
+    </div>
+
+    <div class="main-content" id="main-content-area">
+        <div class="quote-box" id="step-quote">
+            <div class="quote-text" id="quote-display">"La disciplina è il ponte tra gli obiettivi e il loro raggiungimento."</div>
+            <div class="quote-author" id="quote-author">— Jim Rohn</div>
+        </div>
+
+        <div id="active-goal-content" style="display:none; flex-direction: column; gap: 25px;">
+            <div class="card" id="step-goal-header">
+                <h2 id="current-goal-heading" style="font-size: 1.5rem; margin-bottom: 15px;"></h2>
+                <div id="advice-container" class="advice-box"></div>
+            </div>
+
+            <div class="grid-3" id="step-tasks">
+                <div class="card">
+                    <h3>☀️ Giornalieri</h3>
+                    <div class="input-group">
+                        <input type="text" id="daily-input" placeholder="Aggiungi task...">
+                        <button onclick="addTask('daily')">+</button>
+                    </div>
+                    <ul id="daily-list" class="todo-list"></ul>
+                </div>
+
+                <div class="card">
+                    <h3>📅 Settimanali</h3>
+                    <div class="input-group">
+                        <input type="text" id="weekly-input" placeholder="Aggiungi task...">
+                        <button onclick="addTask('weekly')">+</button>
+                    </div>
+                    <ul id="weekly-list" class="todo-list"></ul>
+                </div>
+
+                <div class="card">
+                    <h3>🌕 Mensili</h3>
+                    <div class="input-group">
+                        <input type="text" id="monthly-input" placeholder="Aggiungi task...">
+                        <button onclick="addTask('monthly')">+</button>
+                    </div>
+                    <ul id="monthly-list" class="todo-list"></ul>
+                </div>
+            </div>
+
+            <div class="card" id="step-stats">
+                <h3>📊 Panoramica Dati</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Frequenza</th>
+                            <th>Completati</th>
+                            <th>Totali</th>
+                            <th>Progresso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Giornalieri</td>
+                            <td id="daily-done">0</td>
+                            <td id="daily-total">0</td>
+                            <td><span class="progress-badge" id="daily-pct">0%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Settimanali</td>
+                            <td id="weekly-done">0</td>
+                            <td id="weekly-total">0</td>
+                            <td><span class="progress-badge" id="weekly-pct">0%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Mensili</td>
+                            <td id="monthly-done">0</td>
+                            <td id="monthly-total">0</td>
+                            <td><span class="progress-badge" id="monthly-pct">0%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>📈 Progresso Disciplina</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>🍕 Distribuzione Carico Task</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="empty-state" class="no-goals-message">
+            🎯 Crea un obiettivo finale nella barra laterale per iniziare a tracciare la tua disciplina.
+        </div>
+    </div>
+
+    <div id="manual-modal" class="modal">
+        <div class="modal-content">
+            <h2>📖 Manuale Completo Focus OS</h2>
+            
+            <h3>🎯 1. Filosofia del Sistema</h3>
+            <p>Ogni pagina creata all'interno della barra laterale sinistra rappresenta un macro-obiettivo indipendente. Questo approccio è strutturato per evitare il sovraccarico mentale, permettendoti di focalizzarti su una singola area di vita alla volta.</p>
+            
+            <h3>⏰ 2. Reset Automatici di Tempo</h3>
+            <p>L'applicazione monitora costantemente il flusso temporale in background per garantire la continuità dei tuoi impegni. I compiti vengono ripristinati secondo scadenze precise:</p>
+            <ul>
+                <li><strong>Giornalieri (☀️):</strong> Tornano da spuntare automaticamente ogni notte allo scoccare della mezzanotte.</li>
+                <li><strong>Settimanali (📅):</strong> Vengono azzerati all'inizio di ogni nuova settimana (ogni lunedì).</li>
+                <li><strong>Mensili (🌕):</strong> Si resettano il primo giorno di ogni mese solare.</li>
+            </ul>
+            
+            <h3>📊 3. Statistiche e Grafici Integrati</h3>
+            <p>La sezione inferiore analizza matematicamente la tua produttività senza bisogno di calcoli esterni:</p>
+            <ul>
+                <li><strong>Tabella Dati:</strong> Mostra il rapporto esatto tra i compiti completati e quelli totali pianificati, traducendoli in percentuali di avanzamento rapide.</li>
+                <li><strong>Progresso Disciplina:</strong> Un grafico a linee che mappa visivamente il livello di completamento delle diverse frequenze temporali.</li>
+                <li><strong>Distribuzione Carico Task:</strong> Un grafico a torta che ti aiuta a capire dove si concentra la maggior parte dei tuoi impegni attuali per bilanciare meglio le tue giornate.</li>
+            </ul>
+
+            <h3>💡 4. Sistema di Memoria Locale</h3>
+            <p>Tutti i dati, le liste e le spunte vengono salvati in tempo reale sul browser dell'utente (tramite <em>LocalStorage</em>). Questo significa che puoi chiudere la pagina in qualsiasi momento e ritroverai tutto esattamente come lo avevi lasciato al riavvio successivo.</p>
+            
+            <button onclick="toggleModal(false)" style="margin-top:25px; width:100%; padding: 14px;">Ho capito, chiudi il Manuale</button>
+        </div>
+    </div>
+
+<script>
+    // DATABASE DELLE 100 FRASI SULLA DISCIPLINA
+    const quotesDatabase = [
+        { text: "La disciplina è il ponte tra gli obiettivi e il loro raggiungimento.", author: "Jim Rohn" },
+        { text: "Soffri il dolore della disciplina o soffri il dolore del rimpianto.", author: "Jim Rohn" },
+        { text: "La motivazione ti fa partire. La disciplina ti fa crescere.", author: "John C. Maxwell" },
+        { text: "Non devi essere grande per iniziare, ma devi iniziare per essere grande.", author: "Zig Ziglar" },
+        { text: "Ciò che facciamo ogni giorno conta più di ciò che facciamo ogni tanto.", author: "Gretchen Rubin" },
+        { text: "Il segreto del tuo futuro è nascosto nella tua routine quotidiana.", author: "Mike Murdock" },
+        { text: "La disciplina è semplicemente scegliere tra ciò che vuoi ora e ciò che vuoi di più.", author: "Abraham Lincoln" },
+        { text: "I dilettanti siedono e aspettano l'ispirazione, il resto di noi si alza e va a lavorare.", author: "Stephen King" },
+        { text: "Se non governi la tua mente, qualcun altro o qualcos'altro lo farà.", author: "Doko" },
+        { text: "Non contano le ore che metti nel lavoro, ma il lavoro che metti nelle ore.", author: "Anonimo" },
+        { text: "Chi ha un perché abbastanza forte può superare quasi ogni come.", author: "Friedrich Nietzsche" },
+        { text: "L'energia segue il focus. Concentrati su dove vuoi arrivare, non su cosa temi.", author: "Tony Robbins" },
+        { text: "Le grandi cose sono fatte da una serie di piccole cose messe insieme.", author: "Vincent Van Gogh" },
+        { text: "Il successo non è definitivo, il fallimento non è fatale: ciò che conta è il coraggio di andare avanti.", author: "Winston Churchill" },
+        { text: "È la costanza delle piccole azioni che sposta le montagne.", author: "Proverbio Cinese" },
+        { text: "La tua mente è per avere idee, non per trattenerle.", author: "David Allen" },
+        { text: "Fai oggi quello che gli altri non faranno, per fare domani quello che gli altri non potranno.", author: "Jerry Rice" },
+        { text: "La ripetizione è la madre dell'abilità.", author: "Tony Robbins" },
+        { text: "L'eccellenza non è un atto, ma un'abitudine.", author: "Aristotele" },
+        { text: "Nessun vento è favorevole per il marinaio che non sa in quale porto andare.", author: "Seneca" },
+        { text: "Il momento migliore per piantare un albero era 20 anni fa. Il secondo momento migliore è adesso.", author: "Proverbio Cinese" },
+        { text: "Non aspettare il momento perfetto. Prendi il momento e rendilo perfetto.", author: "Anonimo" },
+        { text: "La disciplina batte il talento quando il talento non ha disciplina.", author: "Anonimo" },
+        { text: "Un viaggio di mille miles comincia con un solo passo.", author: "Lao Tzu" },
+        { text: "Focalizzati sull'azione, non sul risultato finale.", author: "Bhagavad Gita" },
+        { text: "Le distrazioni distruggono la grandezza. Proteggi il tuo tempo.", author: "Robin Sharma" },
+        { text: "Se trovi una scusa, stai scegliendo di perdere.", author: "Anonimo" },
+        { text: "Non paragonarti agli altri, paragonati a chi eri ieri.", author: "Jordan Peterson" },
+        { text: "La costanza è l'armatura dei vincenti.", author: "Anonimo" },
+        { text: "Fai la cosa difficile quando è facile, non quando diventa impossibile.", author: "Lao Tzu" },
+        { text: "I risultati eccezionali richiedono routine ordinarie ma ferree.", author: "Anonimo" },
+        { text: "Non fermarti quando sei stanco, fermati quando hai finito.", author: "David Goggins" },
+        { text: "La pigrizia è un'abitudine che si nutre di rinvii.", author: "Anonimo" },
+        { text: "La forza non deriva dalle capacità fisiche, ma da una volontà indomita.", author: "Mahatma Gandhi" },
+        { text: "Meglio un grammo di esecuzione che un chilo di pianificazione.", author: "Anonimo" },
+        { text: "Il focus totale richiede di dire di no a cento buone idee.", author: "Steve Jobs" },
+        { text: "Cadi sette volte, rialzati otto.", author: "Proverbio Giapponese" },
+        { text: "Non sovrastimare quello che puoi fare in un giorno e non sottostimare quello che fai in un anno.", author: "Bill Gates" },
+        { text: "Se ami la vita, non sprecare tempo, perché il tempo è ciò di cui la vita è fatta.", author: "Bruce Lee" },
+        { text: "La resistenza che combatti sul piano mentale definisce la tua crescita.", author: "Anonimo" },
+        { text: "Non guardare l'orologio; fai quello che fa lui. Continua ad andare.", author: "Sam Levenson" },
+        { text: "L'autocontrollo è la forma più alta di libertà.", author: "Anonimo" },
+        { text: "La chiarezza genera potere. Sappi esattamente cosa devi fare.", author: "Anonimo" },
+        { text: "Le decisioni difficili portano a una vita facile. Le decisioni facili a una vita difficile.", author: "Jerzy Gregorek" },
+        { text: "Ogni azione che compi è un voto per il tipo di persona che vuoi diventare.", author: "James Clear" },
+        { text: "Non cercare la motivazione, costruisci l'abitudine.", author: "Anonimo" },
+        { text: "L'unica persona che sei destinato a diventare è la persona che decidi di essere.", author: "Ralph Waldo Emerson" },
+        { text: "La vittoria appartiene ai più perseveranti.", author: "Napoleone Bonaparte" },
+        { text: "Il progresso, non la perfezione, è il vero obiettivo.", author: "Anonimo" },
+        { text: "Nulla è così faticoso come il rinvio eterno di un compito.", author: "William James" },
+        { text: "Colui che controlla gli altri può essere potente, ma colui che domina se stesso è ancora più forte.", author: "Lao Tzu" },
+        { text: "Imponiti una disciplina prima che la vita lo faccia per te.", author: "Anonimo" },
+        { text: "Non c'è spazio per le scuse all'interno di una mente focalizzata.", author: "Anonimo" },
+        { text: "La costanza silenziosa produce rumore con i risultati.", author: "Anonimo" },
+        { text: "Chi sposta una montagna comincia portando via i sassi più piccoli.", author: "Confucio" },
+        { text: "La disciplina è ricordare a se stessi cosa si desidera davvero sul lungo termine.", author: "Anonimo" },
+        { text: "Fai ogni cosa come se fosse l'unica che conta in quel momento.", author: "Marco Aurelio" },
+        { text: "Smetti di parlare e inizia a fare.", author: "Walt Disney" },
+        { text: "L'ostacolo è la via.", author: "Ryan Holiday" },
+        { text: "Il sudore di oggi è il successo di domani.", author: "Anonimo" },
+        { text: "La concentrazione è la radice di tutte le capacità umane.", author: "Bruce Lee" },
+        { text: "Non essere distratto dal rumore circostante; mantieni lo sguardo sul tuo percorso.", author: "Anonimo" },
+        { text: "La costanza trasforma l'ordinario in straordinario.", author: "Anonimo" },
+        { text: "Non aver paura di camminare lentamente, abbi solo paura di fermarti.", author: "Proverbio Cinese" },
+        { text: "L'unica via d'uscita è passare attraverso.", author: "Robert Frost" },
+        { text: "Costruisci il tuo sistema in modo che l'inerzia lavori a tuo favore.", author: "Anonimo" },
+        { text: "Le scuse sono i chiodi usati per costruire una casa di fallimenti.", author: "Jim Rohn" },
+        { text: "Il fallimento è l'opportunità di ricominciare in modo più intelligente.", author: "Henry Ford" },
+        { text: "La disciplina ti porta in luoghi che la motivazione non può nemmeno sognare.", author: "Anonimo" },
+        { text: "Sii implacabile con le tue azioni e paziente con i tuoi risultati.", author: "Anonimo" },
+        { text: "Chi non organizza il proprio tempo permette agli altri di rubarlo.", author: "Anonimo" },
+        { text: "L'azione è la chiave fondamentale di ogni successo.", author: "Pablo Picasso" },
+        { text: "Fai la mossa successiva. Solo quella.", author: "Anonimo" },
+        { text: "Impara a riposare, non ad arrenderti.", author: "Banksy" },
+        { text: "Il valore di un'idea sta nel suo utilizzo.", author: "Thomas Edison" },
+        { text: "Nulla funzionerà a meno che tu non lo faccia funzionare.", author: "Maya Angelou" },
+        { text: "La disciplina non è una punizione, è una forma di cura di sé.", author: "Anonimo" },
+        { text: "Semplifica la tua giornata per massimizzare la tua energia.", author: "Anonimo" },
+        { text: "Se continui a rimandare, stai dicendo che il tuo futuro può aspettare.", author: "Anonimo" },
+        { text: "Il segreto per andare avanti è iniziare.", author: "Mark Twain" },
+        { text: "Chi domina la mattina domina il giorno.", author: "Proverbio" },
+        { text: "Le persone di successo fanno ciò che le persone comuni non hanno voglia di fare.", author: "Anonimo" },
+        { text: "La costanza batte l'intensità ogni singola volta.", author: "Anonimo" },
+        { text: "Sii il guardiano intransigente della tua attenzione.", author: "Anonimo" },
+        { text: "Le buone abitudini sono difficili da formare ma facili da vivere.", author: "Zig Ziglar" },
+        { text: "Il lavoro duro batte il talento quando il talento non lavora duro.", author: "Tim Notke" },
+        { text: "Non puoi cambiare il tuo futuro, ma puoi cambiare le tue abitudini.", author: "John C. Maxwell" },
+        { text: "La maestria richiede tempo, pazienza e una ripetizione infinita.", author: "Anonimo" },
+        { text: "Chiudi le finestre del passato per poterti concentrare sul presente.", author: "Anonimo" },
+        { text: "Il dolore è temporaneo, la gloria è per sempre.", author: "Anonimo" },
+        { text: "Non permettere a ieri di rubare troppo spazio a oggi.", author: "Will Rogers" },
+        { text: "Ogni mattina hai due scelte: continuare a dormire con i tuoi sogni o svegliarti e inseguirli.", author: "Anonimo" },
+        { text: "La disciplina è la scelta consapevole della libertà futura.", author: "Anonimo" },
+        { text: "Le vette si scalano passo dopo passo, non saltando.", author: "Anonimo" },
+        { text: "Se vuoi una vita straordinaria, devi smettere di pretendere risultati ordinari.", author: "Anonimo" },
+        { text: "Trova la gioia nel processo di costruzione quotidiana.", author: "Anonimo" },
+        { text: "La tua risorsa più preziosa è l'attenzione focalizzata.", author: "Anonimo" },
+        { text: "Sii più forte delle tue scuse più convincenti.", author: "Anonimo" },
+        { text: "Non ti viene dato un sogno senza la forza di realizzarlo.", author: "Richard Bach" },
+        { text: "Fallo e basta. Il resto è solo rumore di fondo.", author: "Anonimo" }
+    ];
+
+    // Sceglie e mostra una frase casuale dal database all'avvio
+    function displayRandomQuote() {
+        const randomIndex = Math.floor(Math.random() * quotesDatabase.length);
+        const selectedQuote = quotesDatabase[randomIndex];
+        document.getElementById('quote-display').innerText = `"${selectedQuote.text}"`;
+        document.getElementById('quote-author').innerText = `— ${selectedQuote.author}`;
+    }
+
+    let store = { goals: [], activeGoalId: null, lastCheckedDates: { day: null, week: null, month: null } };
+    let isTutorialActive = false;
+    let lineChartInstance = null;
+    let pieChartInstance = null;
+
+    function showToast(text, type = "success") {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerText = text;
+        container.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 3500);
+    }
+
+    function checkAndResetTime() {
+        const now = new Date();
+        const currentDayStr = now.toDateString(); 
+        const currentMonthStr = `${now.getFullYear()}-${now.getMonth()}`;
+        
+        const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
+        const pastDaysOfYear = (now - firstDayOfYear) / 86400000;
+        const currentWeekStr = `${now.getFullYear()}-${Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)}`;
+
+        if (!store.lastCheckedDates) {
+            store.lastCheckedDates = { day: currentDayStr, week: currentWeekStr, month: currentMonthStr };
+            saveStore();
+            return;
+        }
+
+        let hasReset = false;
+        let resetTypes = [];
+
+        if (store.lastCheckedDates.day !== currentDayStr) {
+            store.goals.forEach(g => g.tasks.daily.forEach(t => t.done = false));
+            store.lastCheckedDates.day = currentDayStr;
+            resetTypes.push("Giornalieri ☀️");
+            hasReset = true;
+        }
+
+        if (store.lastCheckedDates.week !== currentWeekStr) {
+            store.goals.forEach(g => g.tasks.weekly.forEach(t => t.done = false));
+            store.lastCheckedDates.week = currentWeekStr;
+            resetTypes.push("Settimanali 📅");
+            hasReset = true;
+        }
+
+        if (store.lastCheckedDates.month !== currentMonthStr) {
+            store.goals.forEach(g => g.tasks.monthly.forEach(t => t.done = false));
+            store.lastCheckedDates.month = currentMonthStr;
+            resetTypes.push("Mensili 🌕");
+            hasReset = true;
+        }
+
+        if (hasReset) {
+            saveStore();
+            setTimeout(() => {
+                showToast(`Nuovo ciclo iniziato! Reset effettuato su: ${resetTypes.join(', ')}`, "warning");
+            }, 1000);
+        }
+    }
+
+    function initCharts() {
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        lineChartInstance = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['Giornalieri', 'Settimanali', 'Mensili'],
+                datasets: [{
+                    label: '% Completamento',
+                    data: [0, 0, 0],
+                    borderColor: '#ffffff',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 0, max: 100, grid: { color: '#262630' }, ticks: { color: '#9ca3af' } },
+                    x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+                }
+            }
+        });
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        pieChartInstance = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Giornalieri', 'Settimanali', 'Mensili'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: ['#ffffff', '#9ca3af', '#262630'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', boxWidth: 12 } } }
+            }
+        });
+    }
+
+    function updateCharts(dailyPct, weeklyPct, monthlyPct, dailyTot, weeklyTot, monthlyTot) {
+        if (!lineChartInstance || !pieChartInstance) return;
+        lineChartInstance.data.datasets[0].data = [dailyPct, weeklyPct, monthlyPct];
+        lineChartInstance.update();
+        pieChartInstance.data.datasets[0].data = [dailyTot, weeklyTot, monthlyTot];
+        pieChartInstance.update();
+    }
+
+    function loadStore() {
+        try {
+            const saved = localStorage.getItem('focusOS_Data');
+            if (saved) {
+                store = JSON.parse(saved);
+                showToast("Dati sincronizzati con successo!", "success");
+            }
+            checkAndResetTime();
+            renderSidebar();
+            if (store.activeGoalId && store.goals.some(g => g.id === store.activeGoalId)) {
+                switchGoal(store.activeGoalId);
+            } else if (store.goals.length > 0) {
+                switchGoal(store.goals[0].id);
+            } else {
+                checkEmptyState();
+            }
+        } catch (e) {
+            showToast("Impossibile accedere alla memoria locale!", "error");
+        }
+    }
+
+    function saveStore() {
+        if (isTutorialActive) return;
+        try {
+            localStorage.setItem('focusOS_Data', JSON.stringify(store));
+            showToast("Modifiche salvate!", "success");
+        } catch (e) {
+            showToast("Salvataggio fallito!", "error");
+        }
+    }
+
+    function createNewGoal() {
+        const input = document.getElementById('new-goal-title');
+        const title = input.value.trim();
+        if (!title) { showToast("Errore: Digita un nome prima!", "warning"); return; }
+
+        try {
+            const newGoal = {
+                id: Date.now().toString(),
+                title: title,
+                tasks: { daily: [], weekly: [], monthly: [] }
+            };
+            store.goals.push(newGoal);
+            store.activeGoalId = newGoal.id;
+            input.value = '';
+            saveStore();
+            renderSidebar();
+            switchGoal(newGoal.id);
+        } catch (err) {
+            showToast("Errore di creazione", "error");
+        }
+    }
+
+    function deleteGoal(id, event) {
+        event.stopPropagation();
+        store.goals = store.goals.filter(g => g.id !== id);
+        if (store.activeGoalId === id) store.activeGoalId = store.goals.length > 0 ? store.goals[0].id : null;
+        saveStore();
+        renderSidebar();
+        if (store.activeGoalId) switchGoal(store.activeGoalId); else checkEmptyState();
+    }
+
+    function renderSidebar() {
+        const list = document.getElementById('sidebar-goal-list');
+        list.innerHTML = '';
+        store.goals.forEach(goal => {
+            const isActive = goal.id === store.activeGoalId;
+            list.innerHTML += `
+                <li class="goal-item ${isActive ? 'active' : ''}" onclick="switchGoal('${goal.id}')">
+                    <span>${goal.title}</span>
+                    <button class="delete-goal-btn" onclick="deleteGoal('${goal.id}', event)">✕</button>
+                </li>
+            `;
+        });
+    }
+
+    function switchGoal(id) {
+        store.activeGoalId = id;
+        renderSidebar();
+        checkEmptyState();
+        const goal = store.goals.find(g => g.id === id);
+        if (!goal) return;
+        document.getElementById('current-goal-heading').innerText = goal.title;
+        document.getElementById('advice-container').innerText = "Dividi questo traguardo in micro-azioni giornaliere. La costanza batte l'intensità.";
+        renderTasks();
+    }
+
+    function checkEmptyState() {
+        const content = document.getElementById('active-goal-content');
+        const empty = document.getElementById('empty-state');
+        if (store.goals.length > 0 && store.activeGoalId) {
+            content.style.display = 'flex';
+            empty.style.display = 'none';
+        } else {
+            content.style.display = 'none';
+            empty.style.display = 'block';
+        }
+    }
+
+    function addTask(type) {
+        const input = document.getElementById(`${type}-input`);
+        const text = input.value.trim();
+        if (!text) return;
+        const goal = store.goals.find(g => g.id === store.activeGoalId);
+        if (goal) { goal.tasks[type].push({ text: text, done: false }); input.value = ''; saveStore(); renderTasks(); }
+    }
+
+    function toggleTask(type, index) {
+        const goal = store.goals.find(g => g.id === store.activeGoalId);
+        if (goal) { goal.tasks[type][index].done = !goal.tasks[type][index].done; saveStore(); renderTasks(); }
+    }
+
+    function deleteTask(type, index) {
+        const goal = store.goals.find(g => g.id === store.activeGoalId);
+        if (goal) { goal.tasks[type].splice(index, 1); saveStore(); renderTasks(); }
+    }
+
+    function renderTasks() {
+        const goal = store.goals.find(g => g.id === store.activeGoalId);
+        if (!goal) return;
+        
+        let pcts = { daily: 0, weekly: 0, monthly: 0 };
+        let totals = { daily: 0, weekly: 0, monthly: 0 };
+
+        const types = ['daily', 'weekly', 'monthly'];
+        types.forEach(type => {
+            const listEl = document.getElementById(`${type}-list`);
+            listEl.innerHTML = '';
+            let doneCount = 0;
+            goal.tasks[type].forEach((task, index) => {
+                if (task.done) doneCount++;
+                listEl.innerHTML += `<li class="todo-item"><div class="todo-left ${task.done ? 'completed' : ''}"><input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${type}', ${index})"><span>${task.text}</span></div><button class="btn-del" onclick="deleteTask('${type}', ${index})">✕</button></li>`;
+            });
+            const total = goal.tasks[type].length;
+            const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+            
+            pcts[type] = pct;
+            totals[type] = total;
+
+            document.getElementById(`${type}-done`).innerText = doneCount;
+            document.getElementById(`${type}-total`).innerText = total;
+            document.getElementById(`${type}-pct`).innerText = pct + '%';
+        });
+
+        updateCharts(pcts.daily, pcts.weekly, pcts.monthly, totals.daily, totals.weekly, totals.monthly);
+    }
+
+    function toggleModal(show) { document.getElementById('manual-modal').style.display = show ? 'flex' : 'none'; }
+
+    // ENGINE TUTORIAL
+    let currentStep = 0;
+    let backupStore = null;
+    const tutorialSteps = [
+        { id: 'step-sidebar', text: '1. Questa è la barra laterale. Qui puoi inserire il tuo obiettivo finale principale e generare un\'area dedicata.' },
+        { id: 'step-quote', text: '2. Questa è la cassa delle frasi motivazionali. Cambia casualmente per darti la giusta carica mentale.' },
+        { id: 'step-goal-header', text: '3. Qui in alto vedrai l\'obiettivo attivo insieme ai consigli automatici dei mentori di quel settore.' },
+        { id: 'step-tasks', text: '4. Dividi le tue azioni in queste tre colonne: task giornalieri, settimanali e scadenze mensili.' },
+        { id: 'step-stats', text: '5. Infine, in questa tabella vedrai calcolato in tempo reale il progresso matematico e l\'andamento visivo dei grafici!' }
+    ];
+
+    function startTutorial() {
+        isTutorialActive = true;
+        backupStore = JSON.parse(JSON.stringify(store));
+        store.goals = [{ id: 'tutorial-temp', title: '⚽ Esempio: Rimettersi in forma', tasks: { daily: [{text:'20 Flessioni', done:false}], weekly: [], monthly: [] } }];
+        store.activeGoalId = 'tutorial-temp';
+        document.getElementById('active-goal-content').style.display = 'flex';
+        document.getElementById('empty-state').style.display = 'none';
+        currentStep = 0;
+        showStep();
+    }
+
+    function showStep() {
+        const container = document.getElementById('tutorial-container');
+        container.innerHTML = '';
+        document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+
+        if (currentStep >= tutorialSteps.length) {
+            endTutorial();
+            return;
+        }
+
+        const step = tutorialSteps[currentStep];
+        const targetElement = document.getElementById(step.id);
+
+        if (targetElement) {
+            targetElement.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-tooltip">
+                    <div>${step.text}</div>
+                    <button onclick="nextStep()">${currentStep === tutorialSteps.length - 1 ? 'Fine' : 'Avanti ➔'}</button>
+                </div>
+            `;
+        } else {
+            currentStep++;
+            showStep();
+        }
+    }
+
+    function nextStep() { currentStep++; showStep(); }
+
+    function endTutorial() {
+        isTutorialActive = false;
+        document.getElementById('tutorial-container').innerHTML = '';
+        document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+        store = backupStore;
+        renderSidebar();
+        if (store.activeGoalId) switchGoal(store.activeGoalId); else checkEmptyState();
+        showToast("Tutorial concluso!", "success");
+    }
+
+    // Inizializzazioni all'avvio dell'applicazione
+    displayRandomQuote();
+    initCharts();
+    loadStore();
+</script>
+</body>
+</html>
