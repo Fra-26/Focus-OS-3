@@ -144,7 +144,7 @@
             font-size: 0.85rem;
         }
 
-        /* COMPONENTI GRAFICI */
+        /* COMPONENTI GRAFICI E SEZIONI */
         .quote-box {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -183,8 +183,75 @@
         .btn-del { background: none; color: var(--text-muted); border: none; cursor: pointer; }
         .advice-box { background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--accent); padding: 15px; border-radius: 0 8px 8px 0; }
 
-        /* 🔵 STRUTTURA GRAFICI CIRCOLARI (RIDEFINITA) */
-        .translate-label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.03em; }
+        /* STRUTTURA GRAFICI CIRCOLARI */
+        .rings-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 20px; 
+            justify-content: space-around; 
+            margin-top: 15px; 
+        }
+        
+        .ring-card { 
+            background: rgba(255,255,255,0.02); 
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; 
+            padding: 24px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            width: 100%; 
+            max-width: 210px; 
+            text-align: center;
+        }
+        
+        .ring-card h4 { 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+            color: var(--text-muted); 
+            margin-bottom: 15px; 
+            letter-spacing: 0.05em;
+        }
+
+        .svg-ring-wrapper { 
+            position: relative; 
+            width: 130px; 
+            height: 130px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .svg-ring-wrapper svg { 
+            transform: rotate(-90deg); 
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        .ring-bg { 
+            fill: none; 
+            stroke: #1b1b22; 
+            stroke-width: 12; 
+        }
+        
+        .ring-progress { 
+            fill: none; 
+            stroke: var(--accent); 
+            stroke-width: 12; 
+            stroke-linecap: round; 
+            stroke-dasharray: 314; 
+            stroke-dashoffset: 314; 
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        .ring-percentage { 
+            position: absolute; 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: var(--text-main);
+        }
+        
+        .ring-counter { font-size: 0.85rem; color: var(--text-muted); margin-top: 15px; }
         .no-goals-message { text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 1.1rem; }
 
         /* MODALE POPUP */
@@ -198,7 +265,7 @@
         .toast.warning { background-color: var(--warning); color: #000; }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* WIDGET GOOGLE TRADUTTORE */
+        /* WIDGET GOOGLE TRADUTTORE PERSONALIZZATO DARK */
         .translate-container { padding: 5px; display: inline-block; }
         .sidebar .translate-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); }
         .goog-te-gadget-simple {
@@ -209,7 +276,7 @@
         .goog-te-banner-frame { display: none !important; }
         body { top: 0px !important; }
 
-        /* 📱 RESPONSIVE INTERFACCIA MOBILE VERTICALE */
+        /* RESPONSIVE INTERFACCIA MOBILE VERTICALE */
         @media (max-width: 768px) {
             .app-header { height: auto; flex-direction: column; gap: 10px; padding: 10px; }
             .header-left { width: 100%; justify-content: space-between; }
@@ -226,11 +293,19 @@
             .main-content { padding: 15px; gap: 15px; overflow-y: visible; }
             .grid-3 { grid-template-columns: 1fr; }
             
+            /* Ottimizzazione grafica cerchi su mobile */
+            .rings-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .ring-card { max-width: 100%; padding: 15px 10px; }
+            .svg-ring-wrapper { width: 100px; height: 100px; }
+            .ring-bg, .ring-progress { stroke-width: 10; }
+            .ring-percentage { font-size: 1.2rem; }
+
+            .sidebar .translate-container { display: none; }
             .app-header .translate-container { display: block; width: 100%; text-align: center; }
         }
 
         @media (min-width: 769px) {
-            .app-header .translate-container { display: block; }
+            .app-header .translate-container { display: none; }
         }
     </style>
 </head>
@@ -238,15 +313,15 @@
 
     <div class="app-header">
         <div class="header-left">
-            <button onclick="hideSidebar()" style="background: #ef4444; color: white; padding: 10px 14px;">✕ Nascondi Box</button>
-            <button onclick="showSidebar()" style="background: #10b981; color: white; padding: 10px 14px;">✓ Mostra Box</button>
-            <button onclick="toggleSidebar()" style="background: #262630; color: white; padding: 10px 14px;">📋 Toggle Box</button>
+            <button onclick="toggleSidebar()" style="background: #262630; color: white; padding: 10px 14px;">📋 Mostra/Nascondi Box</button>
             <h2 style="font-size: 1.1rem; font-weight: 700;">Focus OS</h2>
         </div>
-        <div class="translate-container">
-            <span class="translate-label">Traduci pagina</span>
-            <div id="google_translate_box"></div>
-        </div>
+        <div class="translate-container" id="google_translate_mobile"></div>
+    </div>
+
+    <div class="content-body">
+        
+        <div class="sidebar" id="step-sidebar">
             <div class="sidebar-title">Obiettivi Finali</div>
             <ul class="goal-list" id="sidebar-goal-list"></ul>
             
@@ -256,6 +331,8 @@
                 <button onclick="startTutorial()" style="background: rgba(59, 130, 246, 0.1); color: #60a5fa;">🧭 Tutorial</button>
                 <button onclick="toggleModal(true)" style="background: transparent; color: var(--text-muted); font-size: 0.85rem; border: none; text-decoration: underline;">📖 Manuale</button>
             </div>
+
+            <div class="translate-container" id="google_translate_pc"></div>
             <div id="tutorial-container"></div>
         </div>
 
@@ -302,6 +379,35 @@
                     </div>
                 </div>
 
+                <div class="card" id="step-stats">
+                    <h3>📊 Progresso Realtime (Grafici Circolari)</h3>
+                    <div class="rings-container">
+                        <div class="ring-card">
+                            <h4>Giorni</h4>
+                            <div class="svg-ring-wrapper">
+                                <svg><circle class="ring-bg" cx="65" cy="65" r="50"></circle><circle class="ring-progress" id="ring-daily-progress" cx="65" cy="65" r="50"></circle></svg>
+                                <div class="ring-percentage" id="ring-daily-pct">0%</div>
+                            </div>
+                            <div class="ring-counter" id="ring-daily-count">0/0 compiti</div>
+                        </div>
+                        <div class="ring-card">
+                            <h4>Settimane</h4>
+                            <div class="svg-ring-wrapper">
+                                <svg><circle class="ring-bg" cx="65" cy="65" r="50"></circle><circle class="ring-progress" id="ring-weekly-progress" cx="65" cy="65" r="50"></circle></svg>
+                                <div class="ring-percentage" id="ring-weekly-pct">0%</div>
+                            </div>
+                            <div class="ring-counter" id="ring-weekly-count">0/0 compiti</div>
+                        </div>
+                        <div class="ring-card">
+                            <h4>Mesi</h4>
+                            <div class="svg-ring-wrapper">
+                                <svg><circle class="ring-bg" cx="65" cy="65" r="50"></circle><circle class="ring-progress" id="ring-monthly-progress" cx="65" cy="65" r="50"></circle></svg>
+                                <div class="ring-percentage" id="ring-monthly-pct">0%</div>
+                            </div>
+                            <div class="ring-counter" id="ring-monthly-count">0/0 compiti</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="empty-state" class="no-goals-message">
@@ -320,7 +426,8 @@
 
 <script type="text/javascript">
     function googleTranslateElementInit() {
-        new google.translate.TranslateElement({ pageLanguage: 'it', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_box');
+        new google.translate.TranslateElement({ pageLanguage: 'it', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_pc');
+        new google.translate.TranslateElement({ pageLanguage: 'it', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_mobile');
     }
 </script>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
@@ -348,20 +455,6 @@
         toast.innerText = text;
         container.appendChild(toast);
         setTimeout(() => { toast.remove(); }, 3000);
-    }
-
-    function hideSidebar() {
-        const sidebar = document.getElementById('step-sidebar');
-        sidebar.classList.add('closed');
-        sidebar.classList.remove('open');
-    }
-
-    function showSidebar() {
-        const sidebar = document.getElementById('step-sidebar');
-        sidebar.classList.remove('closed');
-        if (window.innerWidth <= 768) {
-            sidebar.classList.add('open');
-        }
     }
 
     function toggleSidebar() {
@@ -463,15 +556,28 @@
         if (goal) { goal.tasks[type].splice(index, 1); saveStore(); renderTasks(); }
     }
 
+    function updateAnelloProgressivo(idPrefix, done, total) {
+        const progressCircle = document.getElementById(`ring-${idPrefix}-progress`);
+        const pctText = document.getElementById(`ring-${idPrefix}-pct`);
+        const countText = document.getElementById(`ring-${idPrefix}-count`);
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        pctText.innerText = `${pct}%`;
+        countText.innerText = `${done}/${total}`;
+        progressCircle.style.strokeDashoffset = 314 - (pct / 100) * 314;
+    }
+
     function renderTasks() {
         const goal = store.goals.find(g => g.id === store.activeGoalId);
         if (!goal) return;
         ['daily', 'weekly', 'monthly'].forEach(type => {
             const listEl = document.getElementById(`${type}-list`);
             listEl.innerHTML = '';
+            let doneCount = 0;
             goal.tasks[type].forEach((task, index) => {
+                if (task.done) doneCount++;
                 listEl.innerHTML += `<li class="todo-item"><div class="todo-left ${task.done ? 'completed' : ''}"><input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask('${type}', ${index})"><span>${task.text}</span></div><button class="btn-del" onclick="deleteTask('${type}', ${index})">✕</button></li>`;
             });
+            updateAnelloProgressivo(type, doneCount, goal.tasks[type].length);
         });
     }
 
@@ -481,5 +587,5 @@
     displayRandomQuote();
     loadStore();
 </script>
-</body>r    
+</body>
 </html>
