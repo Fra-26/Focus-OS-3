@@ -1,0 +1,16 @@
+{
+  "name": "Focus OS",
+  "short_name": "Focus OS",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#3b82f6",
+  "description": "Sistema operativo per la tua disciplina personale.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1067/1067555.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
