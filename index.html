@@ -265,15 +265,55 @@
         .toast.warning { background-color: var(--warning); color: #000; }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* WIDGET GOOGLE TRADUTTORE PERSONALIZZATO DARK */
-        .translate-container { padding: 5px; display: inline-block; }
-        .sidebar .translate-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        /* AREA STRUMENTO DI TRADUZIONE CON RICERCA DIGITATA */
+        .search-translate-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+        .search-lang-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1e1e24;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+        }
+        .lang-suggestions {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            width: 100%;
+            background: #1e1e24;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10000;
+            display: none;
+            list-style: none;
+        }
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+        .suggestion-item:hover {
+            background: var(--accent);
+            color: white;
+        }
         .goog-te-gadget-simple {
             background-color: #1e1e24 !important; border: 1px solid var(--border-color) !important;
-            padding: 6px 10px !important; border-radius: 6px !important; cursor: pointer;
+            padding: 6px 10px !important; border-radius: 6px !important; cursor: pointer; width: 100%; text-align: center;
         }
         .goog-te-gadget-simple span { color: var(--text-main) !important; font-size: 0.85rem !important; }
-        .goog-te-banner-frame { display: none !important; }
+        .goog-te-banner-frame, .skiptranslate, #goog-gt-tt { display: none !important; }
         body { top: 0px !important; }
 
         /* RESPONSIVE INTERFACCIA MOBILE VERTICALE */
@@ -293,19 +333,19 @@
             .main-content { padding: 15px; gap: 15px; overflow-y: visible; }
             .grid-3 { grid-template-columns: 1fr; }
             
-            /* Ottimizzazione grafica cerchi su mobile */
             .rings-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .ring-card { max-width: 100%; padding: 15px 10px; }
             .svg-ring-wrapper { width: 100px; height: 100px; }
             .ring-bg, .ring-progress { stroke-width: 10; }
             .ring-percentage { font-size: 1.2rem; }
 
-            .sidebar .translate-container { display: none; }
-            .app-header .translate-container { display: block; width: 100%; text-align: center; }
+            .sidebar .search-translate-box { display: none; }
+            .app-header .search-translate-box { display: flex; width: 100%; border-top: none; margin-top: 5px; padding-top: 0; }
+            .app-header .lang-suggestions { bottom: auto; top: 100%; }
         }
 
         @media (min-width: 769px) {
-            .app-header .translate-container { display: none; }
+            .app-header .search-translate-box { display: none; }
         }
     </style>
 </head>
@@ -316,7 +356,11 @@
             <button onclick="toggleSidebar()" style="background: #262630; color: white; padding: 10px 14px;">📋 Mostra/Nascondi Box</button>
             <h2 style="font-size: 1.1rem; font-weight: 700;">Focus OS</h2>
         </div>
-        <div class="translate-container" id="google_translate_mobile"></div>
+        <div class="search-translate-box">
+            <input type="text" class="search-lang-input" placeholder="Digita la lingua (es: ita, ing, fra)..." oninput="filterLanguages(this, 'mobile')">
+            <ul class="lang-suggestions" id="suggestions-mobile"></ul>
+            <div id="google_translate_mobile" style="display:none;"></div>
+        </div>
     </div>
 
     <div class="content-body">
@@ -332,7 +376,11 @@
                 <button onclick="toggleModal(true)" style="background: transparent; color: var(--text-muted); font-size: 0.85rem; border: none; text-decoration: underline;">📖 Manuale</button>
             </div>
 
-            <div class="translate-container" id="google_translate_pc"></div>
+            <div class="search-translate-box">
+                <input type="text" class="search-lang-input" placeholder="🔍 Digita lingua (es: ita, eng)..." oninput="filterLanguages(this, 'pc')">
+                <ul class="lang-suggestions" id="suggestions-pc"></ul>
+                <div id="google_translate_pc" style="display:none;"></div>
+            </div>
             <div id="tutorial-container"></div>
         </div>
 
@@ -426,13 +474,58 @@
 
 <script type="text/javascript">
     function googleTranslateElementInit() {
-        new google.translate.TranslateElement({ pageLanguage: 'it', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_pc');
-        new google.translate.TranslateElement({ pageLanguage: 'it', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_mobile');
+        new google.translate.TranslateElement({ pageLanguage: 'it', autoDisplay: false }, 'google_translate_pc');
+        new google.translate.TranslateElement({ pageLanguage: 'it', autoDisplay: false }, 'google_translate_mobile');
     }
 </script>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <script>
+    // Database lingue supportate per ricerca predittiva rapida
+    const languageDatabase = [
+        { name: "Italiano", code: "it" }, { name: "Inglese", code: "en" }, { name: "Francese", code: "fr" },
+        { name: "Spagnolo", code: "es" }, { name: "Tedesco", code: "de" }, { name: "Portoghese", code: "pt" },
+        { name: "Russo", code: "ru" }, { name: "Cinese", code: "zh-CN" }, { name: "Giapponese", code: "ja" },
+        { name: "Arabo", code: "ar" }, { name: "Hindi", code: "hi" }, { name: "Olandese", code: "nl" }
+    ];
+
+    function filterLanguages(inputEl, mode) {
+        const query = inputEl.value.toLowerCase().trim();
+        const suggestionsUl = document.getElementById(`suggestions-${mode}`);
+        
+        if (!query) { suggestionsUl.style.display = 'none'; return; }
+        
+        const filtered = languageDatabase.filter(lang => lang.name.toLowerCase().includes(query) || lang.code.includes(query));
+        suggestionsUl.innerHTML = '';
+        
+        if (filtered.length > 0) {
+            suggestionsUl.style.display = 'block';
+            filtered.forEach(lang => {
+                const li = document.createElement('li');
+                li.className = 'suggestion-item';
+                li.innerText = lang.name;
+                li.onclick = () => selectLanguage(lang.code, lang.name, inputEl, suggestionsUl);
+                suggestionsUl.appendChild(li);
+            });
+        } else {
+            suggestionsUl.style.display = 'none';
+        }
+    }
+
+    function selectLanguage(code, name, inputEl, suggestionsUl) {
+        inputEl.value = name;
+        suggestionsUl.style.display = 'none';
+        
+        // Esegue l'attivazione automatica del trigger di Google Traduttore
+        const selectFrame = document.querySelector('.goog-te-combo');
+        if (selectFrame) {
+            selectFrame.value = code;
+            selectFrame.dispatchEvent(new Event('change'));
+        } else {
+            showToast("Traduttore in caricamento, riprova tra un secondo.", "warning");
+        }
+    }
+
     const quotesDatabase = [
         { text: "La disciplina è il ponte tra gli obiettivi e il loro raggiungimento.", author: "Jim Rohn" },
         { text: "L'eccellenza non è un atto, ma un'abitudine.", author: "Aristotele" },
@@ -555,6 +648,13 @@
         const goal = store.goals.find(g => g.id === store.activeGoalId);
         if (goal) { goal.tasks[type].splice(index, 1); saveStore(); renderTasks(); }
     }
+
+    // Forza la chiusura del menu dei suggerimenti se si clicca fuori dalla casella
+    document.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('search-lang-input')) {
+            document.querySelectorAll('.lang-suggestions').forEach(ul => ul.style.display = 'none');
+        }
+    });
 
     function updateAnelloProgressivo(idPrefix, done, total) {
         const progressCircle = document.getElementById(`ring-${idPrefix}-progress`);
