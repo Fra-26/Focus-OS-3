@@ -182,6 +182,13 @@
         .completed { text-decoration: line-through; color: var(--text-muted); }
         .btn-del { background: none; color: var(--text-muted); border: none; cursor: pointer; }
         .advice-box { background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--accent); padding: 15px; border-radius: 0 8px 8px 0; }
+        .tutorial-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-top: 20px; }
+        .tutorial-panel h3 { font-size: 0.95rem; margin-bottom: 12px; color: var(--text-main); }
+        .tutorial-panel ol { list-style: decimal inside; color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; margin: 0; padding: 0; }
+        .tutorial-panel li { margin-bottom: 8px; }
+        .tutorial-panel button { margin-top: 12px; width: 100%; }
+        .manual-list { list-style: decimal inside; padding-left: 18px; color: var(--text-muted); line-height: 1.6; margin: 12px 0; }
+        .manual-list li { margin-bottom: 10px; }
 
         /* STRUTTURA GRAFICI CIRCOLARI */
         .rings-container { 
@@ -381,7 +388,19 @@
                 <ul class="lang-suggestions" id="suggestions-pc"></ul>
                 <div id="google_translate_pc" style="display:none;"></div>
             </div>
-            <div id="tutorial-container"></div>
+            <div class="tutorial-panel" id="tutorial-container">
+                <h3>🧭 Tutorial rapido</h3>
+                <ol id="tutorial-steps">
+                    <li>Premi "📋 Mostra/Nascondi Box" per aprire o chiudere il pannello laterale.</li>
+                    <li>Inserisci un titolo in "Nuovo Obiettivo Finale..." e premi "+ Crea Pagina".</li>
+                    <li>Clicca su un obiettivo per visualizzare i task giornalieri, settimanali e mensili.</li>
+                    <li>Aggiungi un task usando il campo e il pulsante "+" del box corrispondente.</li>
+                    <li>Seleziona la casella per segnare un task come completato e aggiornare i grafici.</li>
+                    <li>Premi la "✕" per eliminare un task o un intero obiettivo.</li>
+                    <li>Digita una lingua e scegli un suggerimento per tradurre la pagina.</li>
+                </ol>
+                <button onclick="startTutorial()">Mostra il tutorial passo dopo passo</button>
+            </div>
         </div>
 
         <div class="main-content" id="main-content-area">
@@ -467,7 +486,21 @@
     <div id="manual-modal" class="modal">
         <div class="modal-content">
             <h2>📖 Manuale Focus OS</h2>
-            <p>I compiti vengono salvati automaticamente nel browser e si azzerano in base al tempo reale (mezzanotte, inizio settimana, inizio mese).</p>
+            <p>Qui trovi tutte le indicazioni passo dopo passo per usare ogni funzionalità dell'app.</p>
+            <ol class="manual-list">
+                <li><strong>Mostra/Nascondi Box</strong>: apre o chiude la barra laterale degli obiettivi e mostra il tutorial rapido.</li>
+                <li><strong>Nuovo Obiettivo Finale</strong>: inserisci il titolo del progetto e premi "+ Crea Pagina" per salvarlo.</li>
+                <li><strong>Seleziona un obiettivo</strong>: clicca sul titolo per visualizzare le attività associate.</li>
+                <li><strong>Task Giornalieri</strong>: aggiungi attività che vuoi completare ogni giorno.</li>
+                <li><strong>Task Settimanali</strong>: aggiungi attività pianificate per la settimana.</li>
+                <li><strong>Task Mensili</strong>: aggiungi attività di progetto con scadenza mensile.</li>
+                <li><strong>Completa un task</strong>: seleziona la casella per segnare l'attività come terminata.</li>
+                <li><strong>Elimina un task</strong>: premi la "✕" accanto all'attività per rimuoverla.</li>
+                <li><strong>Elimina un obiettivo</strong>: usa la "✕" accanto al nome dell'obiettivo nel pannello laterale.</li>
+                <li><strong>Traduttore</strong>: digita la lingua, scegli un suggerimento e applica la traduzione.</li>
+                <li><strong>Salvataggio automatico</strong>: tutti i dati sono memorizzati nel browser e vengono caricati automaticamente.</li>
+            </ol>
+            <p>I progressi vengono aggiornati in tempo reale e mostrati nei grafici circolari. Chiudendo il browser i dati restano salvati finché non cancelli la cache.</p>
             <button onclick="toggleModal(false)" style="margin-top:20px; width:100%;">Chiudi</button>
         </div>
     </div>
@@ -682,8 +715,36 @@
     }
 
     function toggleModal(show) { document.getElementById('manual-modal').style.display = show ? 'flex' : 'none'; }
-    function startTutorial() { showToast("Funzione dimostrativa attiva", "warning"); }
 
+    const tutorialSteps = [
+        "Premi '📋 Mostra/Nascondi Box' per aprire o chiudere il pannello laterale.",
+        "Inserisci un titolo in 'Nuovo Obiettivo Finale...' e premi '+ Crea Pagina'.",
+        "Clicca su un obiettivo per visualizzare i task giornalieri, settimanali e mensili.",
+        "Aggiungi un task usando il campo e il pulsante '+' corrispondente.",
+        "Seleziona la casella per segnare un task come completato e aggiornare i grafici.",
+        "Premi la '✕' per eliminare un task o un intero obiettivo.",
+        "Digita una lingua e scegli un suggerimento per tradurre la pagina."
+    ];
+
+    function renderTutorialInstructions() {
+        const container = document.getElementById('tutorial-steps');
+        if (!container) return;
+        container.innerHTML = '';
+        tutorialSteps.forEach(step => {
+            const li = document.createElement('li');
+            li.innerText = step;
+            container.appendChild(li);
+        });
+    }
+
+    function startTutorial() {
+        renderTutorialInstructions();
+        showToast("Tutorial caricato: segui i passaggi nel pannello laterale.", "success");
+        const tutorialPanel = document.getElementById('tutorial-container');
+        if (tutorialPanel) tutorialPanel.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    renderTutorialInstructions();
     displayRandomQuote();
     loadStore();
 </script>
