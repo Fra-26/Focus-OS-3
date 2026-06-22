@@ -150,6 +150,7 @@
             border: 1px solid var(--border-color);
             padding: 22px;
             border-radius: 12px;
+            transition: all 0.3s ease;
         }
 
         .quote-text { font-size: 1.1rem; font-style: italic; font-weight: 300; line-height: 1.5; }
@@ -172,7 +173,7 @@
             gap: 20px;
         }
 
-        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.3s ease; }
         .card h3 { font-size: 1rem; text-transform: uppercase; margin-bottom: 15px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         
         .todo-list { list-style: none; margin-top: 15px; }
@@ -182,13 +183,6 @@
         .completed { text-decoration: line-through; color: var(--text-muted); }
         .btn-del { background: none; color: var(--text-muted); border: none; cursor: pointer; }
         .advice-box { background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--accent); padding: 15px; border-radius: 0 8px 8px 0; }
-        .tutorial-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; margin-top: 20px; }
-        .tutorial-panel h3 { font-size: 0.95rem; margin-bottom: 12px; color: var(--text-main); }
-        .tutorial-panel ol { list-style: decimal inside; color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; margin: 0; padding: 0; }
-        .tutorial-panel li { margin-bottom: 8px; }
-        .tutorial-panel button { margin-top: 12px; width: 100%; }
-        .manual-list { list-style: decimal inside; padding-left: 18px; color: var(--text-muted); line-height: 1.6; margin: 12px 0; }
-        .manual-list li { margin-bottom: 10px; }
 
         /* STRUTTURA GRAFICI CIRCOLARI */
         .rings-container { 
@@ -264,6 +258,10 @@
         /* MODALE POPUP */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999999; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); padding: 30px; border-radius: 16px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto; }
+        .modal-content h2 { margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal-content h3 { font-size: 1rem; color: var(--accent); margin: 15px 0 5px 0; text-transform: uppercase; }
+        .modal-content p, .modal-content li { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
+        .modal-content ul { padding-left: 20px; margin-bottom: 15px; }
 
         /* NOTIFICHE TOAST */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
@@ -323,6 +321,25 @@
         .goog-te-banner-frame, .skiptranslate, #goog-gt-tt { display: none !important; }
         body { top: 0px !important; }
 
+        /* STILI SPECIFICI PER L'EFFETTO DEL TUTORIAL GUIDATO */
+        .tutorial-highlight {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4) !important;
+            transform: scale(1.01);
+        }
+        .tutorial-overlay-card {
+            background: var(--accent);
+            color: #000;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         /* RESPONSIVE INTERFACCIA MOBILE VERTICALE */
         @media (max-width: 768px) {
             .app-header { height: auto; flex-direction: column; gap: 10px; padding: 10px; }
@@ -360,7 +377,7 @@
 
     <div class="app-header">
         <div class="header-left">
-            <button onclick="toggleSidebar()" style="background: #262630; color: white; padding: 10px 14px;">📋 Mostra/Nascondi Box</button>
+            <button id="btn-toggle-sidebar" onclick="toggleSidebar()" style="background: #262630; color: white; padding: 10px 14px;">📋 Mostra/Nascondi Box</button>
             <h2 style="font-size: 1.1rem; font-weight: 700;">Focus OS</h2>
         </div>
         <div class="search-translate-box">
@@ -378,29 +395,18 @@
             
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <input type="text" id="new-goal-title" placeholder="Nuovo Obiettivo Finale...">
-                <button onclick="createNewGoal()">+ Crea Pagina</button>
+                <button id="btn-create-goal" onclick="createNewGoal()">+ Crea Pagina</button>
                 <button onclick="startTutorial()" style="background: rgba(59, 130, 246, 0.1); color: #60a5fa;">🧭 Tutorial</button>
                 <button onclick="toggleModal(true)" style="background: transparent; color: var(--text-muted); font-size: 0.85rem; border: none; text-decoration: underline;">📖 Manuale</button>
             </div>
 
-            <div class="search-translate-box">
+            <div class="search-translate-box" id="step-translate">
                 <input type="text" class="search-lang-input" placeholder="🔍 Digita lingua (es: ita, eng)..." oninput="filterLanguages(this, 'pc')">
                 <ul class="lang-suggestions" id="suggestions-pc"></ul>
                 <div id="google_translate_pc" style="display:none;"></div>
             </div>
-            <div class="tutorial-panel" id="tutorial-container">
-                <h3>🧭 Tutorial rapido</h3>
-                <ol id="tutorial-steps">
-                    <li>Premi "📋 Mostra/Nascondi Box" per aprire o chiudere il pannello laterale.</li>
-                    <li>Inserisci un titolo in "Nuovo Obiettivo Finale..." e premi "+ Crea Pagina".</li>
-                    <li>Clicca su un obiettivo per visualizzare i task giornalieri, settimanali e mensili.</li>
-                    <li>Aggiungi un task usando il campo e il pulsante "+" del box corrispondente.</li>
-                    <li>Seleziona la casella per segnare un task come completato e aggiornare i grafici.</li>
-                    <li>Premi la "✕" per eliminare un task o un intero obiettivo.</li>
-                    <li>Digita una lingua e scegli un suggerimento per tradurre la pagina.</li>
-                </ol>
-                <button onclick="startTutorial()">Mostra il tutorial passo dopo passo</button>
-            </div>
+            
+            <div id="tutorial-container"></div>
         </div>
 
         <div class="main-content" id="main-content-area">
@@ -485,23 +491,34 @@
 
     <div id="manual-modal" class="modal">
         <div class="modal-content">
-            <h2>📖 Manuale Focus OS</h2>
-            <p>Qui trovi tutte le indicazioni passo dopo passo per usare ogni funzionalità dell'app.</p>
-            <ol class="manual-list">
-                <li><strong>Mostra/Nascondi Box</strong>: apre o chiude la barra laterale degli obiettivi e mostra il tutorial rapido.</li>
-                <li><strong>Nuovo Obiettivo Finale</strong>: inserisci il titolo del progetto e premi "+ Crea Pagina" per salvarlo.</li>
-                <li><strong>Seleziona un obiettivo</strong>: clicca sul titolo per visualizzare le attività associate.</li>
-                <li><strong>Task Giornalieri</strong>: aggiungi attività che vuoi completare ogni giorno.</li>
-                <li><strong>Task Settimanali</strong>: aggiungi attività pianificate per la settimana.</li>
-                <li><strong>Task Mensili</strong>: aggiungi attività di progetto con scadenza mensile.</li>
-                <li><strong>Completa un task</strong>: seleziona la casella per segnare l'attività come terminata.</li>
-                <li><strong>Elimina un task</strong>: premi la "✕" accanto all'attività per rimuoverla.</li>
-                <li><strong>Elimina un obiettivo</strong>: usa la "✕" accanto al nome dell'obiettivo nel pannello laterale.</li>
-                <li><strong>Traduttore</strong>: digita la lingua, scegli un suggerimento e applica la traduzione.</li>
-                <li><strong>Salvataggio automatico</strong>: tutti i dati sono memorizzati nel browser e vengono caricati automaticamente.</li>
-            </ol>
-            <p>I progressi vengono aggiornati in tempo reale e mostrati nei grafici circolari. Chiudendo il browser i dati restano salvati finché non cancelli la cache.</p>
-            <button onclick="toggleModal(false)" style="margin-top:20px; width:100%;">Chiudi</button>
+            <h2>📖 Manuale Completo Focus OS</h2>
+            <p>Benvenuto in Focus OS. Questa applicazione è un sistema operativo per la disciplina personale progettato per aiutarti a non perdere mai di vista i tuoi macro-obiettivi.</p>
+            
+            <h3>1. Gestione Obiettivi Finali (Sidebar)</h3>
+            <ul>
+                <li><strong>Creare un obiettivo:</strong> Digita il titolo nella casella in fondo alla barra laterale (es: "Imparare l'Inglese") e premi "+ Crea Pagina". Verrà creata una pagina dedicata e vuota.</li>
+                <li><strong>Selezionare un obiettivo:</strong> Clicca sul nome dell'obiettivo nella lista per aprire la sua area di lavoro privata.</li>
+                <li><strong>Eliminare un obiettivo:</strong> Clicca sulla "✕" rossa accanto al nome dell'obiettivo per rimuoverlo definitivamente insieme a tutti i suoi compiti.</li>
+            </ul>
+
+            <h3>2. Struttura dei Compiti (I tre Pilastri Temporali)</h3>
+            <ul>
+                <li><strong>Giornalieri (☀️):</strong> Azioni atomiche da compiere oggi (es. "Studiare 15 minuti"). Si azzerano automaticamente a mezzanotte.</li>
+                <li><strong>Settimanali (📅):</strong> Traguardi intermedi da completare entro la fine della settimana corrente (es. "Leggere 1 capitolo").</li>
+                <li><strong>Mensili (🌕):</strong> Grandi blocchi operativi che richiedono settimane di costanza.</li>
+                <li><strong>Sbarrare un compito:</strong> Clicca sulla casella quadrata (checkbox). Il testo verrà sbarrato e il grafico circolare si aggiornerà istantaneamente.</li>
+            </ul>
+
+            <h3>3. Grafici Circolari Realtime</h3>
+            <p>Ogni volta che modifichi lo stato di un compito, il sistema ricalcola matematicamente la percentuale di successo dell'anello di riferimento. Più compiti completi, più l'anello si colorerà di azzurro. Se una sezione non ha compiti all'interno, il suo grafico segnerà 0% di default.</p>
+
+            <h3>4. Ricerca del Traduttore Avanzata</h3>
+            <p>Per cambiare lingua, digita le prime lettere della lingua desiderata nella barra di ricerca (es: scrivendo "fra" apparirà Francese). Clicca sul suggerimento emerso per tradurre istantaneamente l'intera applicazione.</p>
+
+            <h3>5. Salvataggio e Sicurezza Dati</h3>
+            <p>L'applicazione non richiede account. Tutti i tuoi dati sono salvati localmente all'interno della memoria sicura del tuo browser (LocalStorage). Se svuoti i dati di navigazione del browser o formatti il dispositivo, i dati andranno persi.</p>
+
+            <button onclick="toggleModal(false)" style="margin-top:20px; width:100%; background: var(--accent); color:#000;">Ho capito, chiudi manuale</button>
         </div>
     </div>
 
@@ -514,7 +531,6 @@
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <script>
-    // Database lingue supportate per ricerca predittiva rapida
     const languageDatabase = [
         { name: "Italiano", code: "it" }, { name: "Inglese", code: "en" }, { name: "Francese", code: "fr" },
         { name: "Spagnolo", code: "es" }, { name: "Tedesco", code: "de" }, { name: "Portoghese", code: "pt" },
@@ -525,12 +541,9 @@
     function filterLanguages(inputEl, mode) {
         const query = inputEl.value.toLowerCase().trim();
         const suggestionsUl = document.getElementById(`suggestions-${mode}`);
-        
         if (!query) { suggestionsUl.style.display = 'none'; return; }
-        
         const filtered = languageDatabase.filter(lang => lang.name.toLowerCase().includes(query) || lang.code.includes(query));
         suggestionsUl.innerHTML = '';
-        
         if (filtered.length > 0) {
             suggestionsUl.style.display = 'block';
             filtered.forEach(lang => {
@@ -540,23 +553,17 @@
                 li.onclick = () => selectLanguage(lang.code, lang.name, inputEl, suggestionsUl);
                 suggestionsUl.appendChild(li);
             });
-        } else {
-            suggestionsUl.style.display = 'none';
-        }
+        } else { suggestionsUl.style.display = 'none'; }
     }
 
     function selectLanguage(code, name, inputEl, suggestionsUl) {
         inputEl.value = name;
         suggestionsUl.style.display = 'none';
-        
-        // Esegue l'attivazione automatica del trigger di Google Traduttore
         const selectFrame = document.querySelector('.goog-te-combo');
         if (selectFrame) {
             selectFrame.value = code;
             selectFrame.dispatchEvent(new Event('change'));
-        } else {
-            showToast("Traduttore in caricamento, riprova tra un secondo.", "warning");
-        }
+        } else { showToast("Traduttore in caricamento, riprova.", "warning"); }
     }
 
     const quotesDatabase = [
@@ -573,6 +580,7 @@
 
     let store = { goals: [], activeGoalId: null, lastCheckedDates: { day: null, week: null, month: null } };
     let isTutorialActive = false;
+    let currentTutorialStep = 0;
 
     function showToast(text, type = "success") {
         const container = document.getElementById('toast-container');
@@ -603,10 +611,8 @@
                 switchGoal(store.activeGoalId);
             } else if (store.goals.length > 0) {
                 switchGoal(store.goals[0].id);
-            } else {
-                checkEmptyState();
-            }
-        } catch (e) { showToast("Impossibile caricare", "error"); }
+            } else { checkEmptyState(); }
+        } catch (e) { showToast("Impossibile caricare i dati", "error"); }
     }
 
     function saveStore() { if (!isTutorialActive) localStorage.setItem('focusOS_Data', JSON.stringify(store)); }
@@ -622,6 +628,7 @@
         saveStore();
         renderSidebar();
         switchGoal(newGoal.id);
+        if (isTutorialActive && currentTutorialStep === 1) { nextTutorialStep(); }
     }
 
     function deleteGoal(id, event) {
@@ -669,12 +676,23 @@
         const text = input.value.trim();
         if (!text) return;
         const goal = store.goals.find(g => g.id === store.activeGoalId);
-        if (goal) { goal.tasks[type].push({ text: text, done: false }); input.value = ''; saveStore(); renderTasks(); }
+        if (goal) { 
+            goal.tasks[type].push({ text: text, done: false }); 
+            input.value = ''; 
+            saveStore(); 
+            renderTasks(); 
+            if (isTutorialActive && currentTutorialStep === 3) { nextTutorialStep(); }
+        }
     }
 
     function toggleTask(type, index) {
         const goal = store.goals.find(g => g.id === store.activeGoalId);
-        if (goal) { goal.tasks[type][index].done = !goal.tasks[type][index].done; saveStore(); renderTasks(); }
+        if (goal) { 
+            goal.tasks[type][index].done = !goal.tasks[type][index].done; 
+            saveStore(); 
+            renderTasks(); 
+            if (isTutorialActive && currentTutorialStep === 4) { nextTutorialStep(); }
+        }
     }
 
     function deleteTask(type, index) {
@@ -682,7 +700,6 @@
         if (goal) { goal.tasks[type].splice(index, 1); saveStore(); renderTasks(); }
     }
 
-    // Forza la chiusura del menu dei suggerimenti se si clicca fuori dalla casella
     document.addEventListener('click', function(e) {
         if (!e.target.classList.contains('search-lang-input')) {
             document.querySelectorAll('.lang-suggestions').forEach(ul => ul.style.display = 'none');
@@ -694,9 +711,9 @@
         const pctText = document.getElementById(`ring-${idPrefix}-pct`);
         const countText = document.getElementById(`ring-${idPrefix}-count`);
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-        pctText.innerText = `${pct}%`;
-        countText.innerText = `${done}/${total}`;
-        progressCircle.style.strokeDashoffset = 314 - (pct / 100) * 314;
+        if(pctText) pctText.innerText = `${pct}%`;
+        if(countText) countText.innerText = `${done}/${total}`;
+        if(progressCircle) progressCircle.style.strokeDashoffset = 314 - (pct / 100) * 314;
     }
 
     function renderTasks() {
@@ -704,6 +721,7 @@
         if (!goal) return;
         ['daily', 'weekly', 'monthly'].forEach(type => {
             const listEl = document.getElementById(`${type}-list`);
+            if(!listEl) return;
             listEl.innerHTML = '';
             let doneCount = 0;
             goal.tasks[type].forEach((task, index) => {
@@ -716,35 +734,94 @@
 
     function toggleModal(show) { document.getElementById('manual-modal').style.display = show ? 'flex' : 'none'; }
 
-    const tutorialSteps = [
-        "Premi '📋 Mostra/Nascondi Box' per aprire o chiudere il pannello laterale.",
-        "Inserisci un titolo in 'Nuovo Obiettivo Finale...' e premi '+ Crea Pagina'.",
-        "Clicca su un obiettivo per visualizzare i task giornalieri, settimanali e mensili.",
-        "Aggiungi un task usando il campo e il pulsante '+' corrispondente.",
-        "Seleziona la casella per segnare un task come completato e aggiornare i grafici.",
-        "Premi la '✕' per eliminare un task o un intero obiettivo.",
-        "Digita una lingua e scegli un suggerimento per tradurre la pagina."
-    ];
-
-    function renderTutorialInstructions() {
-        const container = document.getElementById('tutorial-steps');
-        if (!container) return;
-        container.innerHTML = '';
-        tutorialSteps.forEach(step => {
-            const li = document.createElement('li');
-            li.innerText = step;
-            container.appendChild(li);
-        });
-    }
-
+    /* LOGICA COMPLETA DEL TUTORIAL INTERATTIVO PASSO-PASSO */
     function startTutorial() {
-        renderTutorialInstructions();
-        showToast("Tutorial caricato: segui i passaggi nel pannello laterale.", "success");
-        const tutorialPanel = document.getElementById('tutorial-container');
-        if (tutorialPanel) tutorialPanel.scrollIntoView({ behavior: 'smooth' });
+        isTutorialActive = true;
+        currentTutorialStep = 0;
+        // Se la sidebar è chiusa, la forziamo ad aprirsi per mostrare la spiegazione
+        document.getElementById('step-sidebar').classList.remove('closed');
+        nextTutorialStep();
     }
 
-    renderTutorialInstructions();
+    function nextTutorialStep() {
+        currentTutorialStep++;
+        const container = document.getElementById('tutorial-container');
+        
+        // Pulizia degli highlight precedenti
+        document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+
+        if (currentTutorialStep === 1) {
+            const target = document.getElementById('step-sidebar');
+            target.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-overlay-card">
+                    <strong>Fase 1: La Barra Laterale</strong><br>
+                    Qui gestisci i macro-obiettivi. Digita un obiettivo finto nella casella di testo qui sopra e premi "+ Crea Pagina" per andare avanti.
+                </div>`;
+        } 
+        else if (currentTutorialStep === 2) {
+            const target = document.getElementById('step-quote');
+            target.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-overlay-card">
+                    <strong>Fase 2: Frase Motivazionale</strong><br>
+                    Questo box ti propone una citazione casuale ad ogni avvio dell'app per darti la giusta mentalità spingendoti alla disciplina.<br><br>
+                    <button onclick="nextTutorialStep()" style="width:100%; padding:5px; background:#000; color:#fff;">Avanti ➔</button>
+                </div>`;
+        } 
+        else if (currentTutorialStep === 3) {
+            const target = document.getElementById('step-tasks');
+            target.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-overlay-card">
+                    <strong>Fase 3: I tre Livelli Temporali</strong><br>
+                    Suddividi l'obiettivo in compiti Giornalieri, Settimanali o Mensili. Digita un compito nella casella "Giornalieri" e premi "+" per aggiungerlo.
+                </div>`;
+        } 
+        else if (currentTutorialStep === 4) {
+            const target = document.getElementById('step-tasks');
+            target.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-overlay-card">
+                    <strong>Fase 4: Completare i Task</strong><br>
+                    Ottimo! Ora clicca sul quadratino di spunta del compito appena inserito per completarlo e vedere la barra sbarrarsi.
+                </div>`;
+        } 
+        else if (currentTutorialStep === 5) {
+            const target = document.getElementById('step-stats');
+            target.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-overlay-card">
+                    <strong>Fase 5: Grafici Circolari</strong><br>
+                    L'anello circolare ha calcolato in tempo reale l'avanzamento portandosi al 100%! Gli anelli si azzerano da soli in base al tempo reale.<br><br>
+                    <button onclick="nextTutorialStep()" style="width:100%; padding:5px; background:#000; color:#fff;">Avanti ➔</button>
+                </div>`;
+        }
+        else if (currentTutorialStep === 6) {
+            const target = document.getElementById('step-translate');
+            target.classList.add('tutorial-highlight');
+            container.innerHTML = `
+                <div class="tutorial-overlay-card">
+                    <strong>Fase 6: Traduttore Intelligente</strong><br>
+                    Usa questa casella per scrivere le prime lettere di una lingua (es: "eng") per convertire istantaneamente l'interfaccia senza perdite di tempo.<br><br>
+                    <button onclick="endTutorial()" style="width:100%; padding:5px; background:#000; color:#fff;">Completa Tutorial 🎉</button>
+                </div>`;
+        }
+    }
+
+    function endTutorial() {
+        isTutorialActive = false;
+        document.getElementById('tutorial-container').innerHTML = '';
+        document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+        // Puliamo i dati dimostrativi usati nel tutorial
+        store.goals = [];
+        store.activeGoalId = null;
+        localStorage.removeItem('focusOS_Data');
+        checkEmptyState();
+        renderSidebar();
+        showToast("Tutorial completato! L'applicazione è pronta.", "success");
+    }
+
     displayRandomQuote();
     loadStore();
 </script>
