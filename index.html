@@ -496,7 +496,7 @@
             
             <h3>1. Gestione Obiettivi Finali (Sidebar)</h3>
             <ul>
-                <li><strong>Creare un obiettivo:</strong> Digita il titolo nella casella in fondo alla barra laterale (es: "Imparare l'Inglese") e premi "+ Crea Pagina". Verrà creata una pagina dedicata e vuota.</li>
+                <li><strong>Creare un obiettivo:</strong> Digita il titolo nella casella in fondo alla barra laterale (es: "Imparare l'Inglese") e primi "+ Crea Pagina". Verrà creata una pagina dedicata e vuota.</li>
                 <li><strong>Selezionare un obiettivo:</strong> Clicca sul nome dell'obiettivo nella lista per aprire la sua area di lavoro privata.</li>
                 <li><strong>Eliminare un obiettivo:</strong> Clicca sulla "✕" rossa accanto al nome dell'obiettivo per rimuoverlo definitivamente insieme a tutti i suoi compiti.</li>
             </ul>
@@ -734,11 +734,10 @@
 
     function toggleModal(show) { document.getElementById('manual-modal').style.display = show ? 'flex' : 'none'; }
 
-    /* LOGICA COMPLETA DEL TUTORIAL INTERATTIVO PASSO-PASSO */
+    /* FUNZIONE INTERATTIVA DEL TUTORIAL CON BOTTONI INTEGRATI */
     function startTutorial() {
         isTutorialActive = true;
         currentTutorialStep = 0;
-        // Se la sidebar è chiusa, la forziamo ad aprirsi per mostrare la spiegazione
         document.getElementById('step-sidebar').classList.remove('closed');
         nextTutorialStep();
     }
@@ -756,7 +755,8 @@
             container.innerHTML = `
                 <div class="tutorial-overlay-card">
                     <strong>Fase 1: La Barra Laterale</strong><br>
-                    Qui gestisci i macro-obiettivi. Digita un obiettivo finto nella casella di testo qui sopra e premi "+ Crea Pagina" per andare avanti.
+                    Qui gestisci i macro-obiettivi. Digita un obiettivo finto nella casella di testo qui sopra e premi "+ Crea Pagina" per andare avanti.<br><br>
+                    <button onclick="nextTutorialStep()" style="width:100%; padding:5px; background:#000; color:#fff;">Avanti (Salta) ➔</button>
                 </div>`;
         } 
         else if (currentTutorialStep === 2) {
@@ -775,7 +775,8 @@
             container.innerHTML = `
                 <div class="tutorial-overlay-card">
                     <strong>Fase 3: I tre Livelli Temporali</strong><br>
-                    Suddividi l'obiettivo in compiti Giornalieri, Settimanali o Mensili. Digita un compito nella casella "Giornalieri" e premi "+" per aggiungerlo.
+                    Suddividi l'obiettivo in compiti Giornalieri, Settimanali o Mensili. Digita un compito nella casella "Giornalieri" e premi "+" per aggiungerlo.<br><br>
+                    <button onclick="nextTutorialStep()" style="width:100%; padding:5px; background:#000; color:#fff;">Avanti (Salta) ➔</button>
                 </div>`;
         } 
         else if (currentTutorialStep === 4) {
@@ -784,7 +785,8 @@
             container.innerHTML = `
                 <div class="tutorial-overlay-card">
                     <strong>Fase 4: Completare i Task</strong><br>
-                    Ottimo! Ora clicca sul quadratino di spunta del compito appena inserito per completarlo e vedere la barra sbarrarsi.
+                    Ottimo! Ora clicca sul quadratino di spunta del compito appena inserito per completarlo e vedere la barra sbarrarsi.<br><br>
+                    <button onclick="nextTutorialStep()" style="width:100%; padding:5px; background:#000; color:#fff;">Avanti (Salta) ➔</button>
                 </div>`;
         } 
         else if (currentTutorialStep === 5) {
@@ -813,7 +815,6 @@
         isTutorialActive = false;
         document.getElementById('tutorial-container').innerHTML = '';
         document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
-        // Puliamo i dati dimostrativi usati nel tutorial
         store.goals = [];
         store.activeGoalId = null;
         localStorage.removeItem('focusOS_Data');
